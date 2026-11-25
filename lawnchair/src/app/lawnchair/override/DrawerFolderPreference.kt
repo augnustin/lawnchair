@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.launcher
+import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import com.android.launcher3.R
@@ -57,6 +58,8 @@ fun DrawerFolderPreference(
 ) {
     val context = LocalContext.current
     val folderService = remember { FolderService.INSTANCE.get(context) }
+    // The min-apps note only applies when single-app folders are hidden.
+    val hideSingleAppFolders = preferenceManager().hideSingleAppFolders.get()
     val folders by remember { folderService.getFoldersFlow() }.collectAsState(initial = null)
     // Writes must survive the sheet being dismissed, so don't tie them to the composition.
     val scope = context.launcher.lifecycleScope
@@ -85,7 +88,7 @@ fun DrawerFolderPreference(
         modifier = modifier,
         heading = stringResource(R.string.app_drawer_folder_settings),
         description = stringResource(R.string.drawer_folder_min_apps_note),
-        showDescription = appFolders.any { it.itemComponentKeys.size < 2 },
+        showDescription = hideSingleAppFolders && appFolders.any { it.itemComponentKeys.size < 2 },
     ) {
         // Bounded so a long folder list scrolls instead of pushing the sheet off screen.
         Column(
